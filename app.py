@@ -74,3 +74,40 @@ def ver_turnos():
     # Consultamos todos los turnos guardados en la base de datos
     todos_los_turnos = Turno.query.all()
     return render_template('turnos.html', lista_turnos=todos_los_turnos)
+
+#pagina para modificar peluqueros
+# ... (mantener los otros imports y configuración) ...
+
+# Nueva Tabla para Peluqueros
+class Peluquero(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+
+# --- RUTAS PARA EL DUEÑO ---
+
+@app.route('/admin/peluqueros')
+def admin_peluqueros():
+    todos = Peluquero.query.all()
+    return render_template('admin_peluqueros.html', peluqueros=todos)
+
+@app.route('/admin/agregar_peluquero', methods=['POST'])
+def agregar_peluquero():
+    nombre = request.form.get('nombre')
+    nuevo = Peluquero(nombre=nombre)
+    db.session.add(nuevo)
+    db.session.commit()
+    return redirect('/admin/peluqueros')
+
+@app.route('/admin/eliminar_peluquero/<int:id>')
+def eliminar_peluquero(id):
+    p = Peluquero.query.get(id)
+    db.session.delete(p)
+    db.session.commit()
+    return redirect('/admin/peluqueros')
+
+# IMPORTANTE: Actualicen la ruta home para que el formulario de turnos 
+# use los peluqueros de la base de datos, no nombres fijos.
+@app.route('/')
+def home():
+    lista_p = Peluquero.query.all()
+    return render_template('index.html', peluqueros=lista_p)
