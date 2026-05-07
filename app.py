@@ -1,40 +1,14 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-# Esta es la ruta principal: lo que se ve al entrar a http://127.0.0.1:5000
-@app.route('/')
-def home():
-    # render_template busca el archivo index.html dentro de la carpeta /templates
-    return render_template('index.html')
-
-# Esta ruta recibe los datos del formulario cuando el usuario hace clic en "Reservar"
-@app.route('/reservar', methods=['POST'])
-def reservar():
-    # Capturamos los datos que el usuario escribió en el HTML
-    nombre_cliente = request.form.get('nombre')
-    email_cliente = request.form.get('email')
-    peluquero_elegido = request.form.get('peluquero')
-    fecha_turno = request.form.get('fecha')
-
-    # Por ahora, solo vamos a mostrar un mensaje de éxito en la pantalla
-    return f"<h1>¡Turno Registrado!</h1> <p>Hola {nombre_cliente}, tu turno con el peluquero {peluquero_elegido} para el {fecha_turno} ha sido reservado. Te enviaremos un correo a {email_cliente}.</p> <a href='/'>Volver al inicio</a>"
-
-if __name__ == '__main__':
-    # El modo debug=True permite que el servidor se reinicie solo cada vez que guardas un cambio
-    app.run(debug=True)
-
-#base de datos
-from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy # Nueva librería
-
-app = Flask(__name__)
-
-# Configuración de la Base de Datos
+# --- CONFIGURACIÓN DE BASE DE DATOS ---
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///barberia.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Definimos cómo se guarda un Turno
+# --- MODELOS (TABLAS) ---
 class Turno(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
@@ -42,50 +16,42 @@ class Turno(db.Model):
     peluquero = db.Column(db.String(50), nullable=False)
     fecha = db.Column(db.String(50), nullable=False)
 
-# Creamos el archivo de la base de datos
+class Peluquero(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+
+# Crear las tablas
 with app.app_context():
     db.create_all()
 
+# --- RUTAS PÚBLICAS ---
+
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # Traemos los peluqueros para el selector del index
+    lista_p = Peluquero.query.all()
+    return render_template('index.html', peluqueros=lista_p)
 
 @app.route('/reservar', methods=['POST'])
 def reservar():
-    # 1. Obtenemos los datos del formulario
     nombre = request.form.get('nombre')
     email = request.form.get('email')
     peluquero = request.form.get('peluquero')
     fecha = request.form.get('fecha')
 
-    # 2. Creamos el objeto Turno y lo guardamos en la DB
     nuevo_turno = Turno(nombre=nombre, email=email, peluquero=peluquero, fecha=fecha)
     db.session.add(nuevo_turno)
     db.session.commit()
+    return f"<h1>¡Turno Registrado!</h1><p>Hola {nombre}, turno con {peluquero} guardado.</p><a href='/'>Volver</a>"
 
-    return f"Turno guardado en la base de datos para {nombre}!"
+# --- RUTAS DE ADMINISTRACIÓN ---
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-# vista para peluqueros
 @app.route('/turnos')
 def ver_turnos():
-    # Consultamos todos los turnos guardados en la base de datos
     todos_los_turnos = Turno.query.all()
     return render_template('turnos.html', lista_turnos=todos_los_turnos)
 
-#pagina para modificar peluqueros
-# ... (mantener los otros imports y configuración) ...
-
-# Nueva Tabla para Peluqueros
-class Peluquero(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
-
-# --- RUTAS PARA EL DUEÑO ---
-
-@app.route('/admin/peluqueros')
+@app.route('/admin/peluqueros/')
 def admin_peluqueros():
     todos = Peluquero.query.all()
     return render_template('admin_peluqueros.html', peluqueros=todos)
@@ -93,21 +59,20 @@ def admin_peluqueros():
 @app.route('/admin/agregar_peluquero', methods=['POST'])
 def agregar_peluquero():
     nombre = request.form.get('nombre')
-    nuevo = Peluquero(nombre=nombre)
-    db.session.add(nuevo)
-    db.session.commit()
-    return redirect('/admin/peluqueros')
+    if nombre:
+        nuevo = Peluquero(nombre=nombre)
+        db.session.add(nuevo)
+        db.session.commit()
+    return redirect(url_for('admin_peluqueros'))
 
 @app.route('/admin/eliminar_peluquero/<int:id>')
 def eliminar_peluquero(id):
-    p = Peluquero.query.get(id)
-    db.session.delete(p)
-    db.session.commit()
-    return redirect('/admin/peluqueros')
+    p = db.session.get(Peluquero, id)
+    if p:
+        db.session.delete(p)
+        db.session.commit()
+    return redirect(url_for('admin_peluqueros'))
 
-# IMPORTANTE: Actualicen la ruta home para que el formulario de turnos 
-# use los peluqueros de la base de datos, no nombres fijos.
-@app.route('/')
-def home():
-    lista_p = Peluquero.query.all()
-    return render_template('index.html', peluqueros=lista_p)
+# --- INICIO DEL SERVIDOR (SIEMPRE AL FINAL) ---
+if __name__ == '__main__':
+    app.run(debug=True)
