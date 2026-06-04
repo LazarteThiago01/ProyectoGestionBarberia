@@ -51,7 +51,7 @@ def reservar():
     db.session.commit()
     return f"<h1>¡Turno Registrado!</h1><p>Hola {nombre}, turno con {peluquero} guardado.</p><a href='/'>Volver</a>"
 
-# --- LOGIN Y REGISTRO ---
+# -- LOGIN Y REGISTRO --
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
