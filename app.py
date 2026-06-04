@@ -32,7 +32,7 @@ class Peluquero(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- RUTAS PÚBLICAS ---
+# --- RUTAS PÚBLICAS -
 
 @app.route('/')
 def home():
