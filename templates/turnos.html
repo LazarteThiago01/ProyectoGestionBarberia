@@ -2,31 +2,106 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Listado de Turnos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbería Burzaco - Panel de Administración</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 280px; background-color: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; flex-shrink: 0; }
+        .sidebar-header { padding: 10px 20px 20px 20px; border-bottom: 1px solid #1f2937; }
+        .sidebar-logo { font-size: 22px; font-weight: 600; }
+        .user-info { margin-top: 15px; padding: 10px; background-color: #1f2937; border-radius: 8px; font-size: 14px; border: 1px solid #374151; }
+        .rol-badge { background-color: #d97706; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-left: 5px; }
+        .sidebar-menu { list-style: none; margin-top: 20px; flex-grow: 1; }
+        .sidebar-item a { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: #9ca3af; text-decoration: none; font-size: 15px; font-weight: 500; transition: all 0.2s ease; }
+        .sidebar-item.active a { color: #06b6d4; background-color: rgba(6, 182, 212, 0.08); border-left: 4px solid #06b6d4; }
+        .sidebar-item a:hover { color: #ffffff; background-color: #1f2937; }
+        .btn-logout { display: block; margin: 20px; padding: 12px; background-color: #ef4444; color: white; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .main-header { margin-bottom: 30px; }
+        .main-header h1 { font-size: 28px; font-weight: 600; }
+        .table-container { background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+        .table-title { padding: 20px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #1f2937; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #2563eb; color: #ffffff; padding: 14px 20px; font-size: 14px; font-weight: 600; }
+        td { padding: 16px 20px; border-bottom: 1px solid #1f2937; font-size: 14px; color: #e5e7eb; }
+        .badge-activo { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-confirmado { background-color: rgba(16, 185, 129, 0.15); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-cancelado { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .actions-cell { display: flex; gap: 10px; }
+        .btn-confirm { color: #10b981; text-decoration: none; font-weight: 600; font-size: 13px; }
+        .btn-cancel { color: #ef4444; text-decoration: none; font-weight: 600; font-size: 13px; }
+        .btn-confirm:hover, .btn-cancel:hover { text-decoration: underline; }
+    </style>
 </head>
-<body class="container mt-5">
-    <h2>Turnos Programados</h2>
-    <table class="table table-striped mt-3">
-        <thead>
-            <tr>
-                <th>Cliente</th>
-                <th>Email</th>
-                <th>Peluquero</th>
-                <th>Fecha/Hora</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in lista_turnos %}
-            <tr>
-                <td>{{ t.nombre }}</td>
-                <td>{{ t.email }}</td>
-                <td>{{ t.peluquero }}</td>
-                <td>{{ t.fecha }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <a href="/" class="btn btn-secondary">Volver a Reservar</a>
+<body>
+
+    <nav class="sidebar">
+        <div>
+            <div class="sidebar-header">
+                <div class="sidebar-logo">💈 Panel Admin Burzaco</div>
+                <div class="user-info">
+                    Admin: <strong>{{ session.get('username') }}</strong>
+                    <span class="rol-badge">admin</span>
+                </div>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active"><a href="/turnos">📋 Ver Todos los Turnos</a></li>
+                <li class="sidebar-item"><a href="/admin/peluqueros/">✂️ Gestionar Peluqueros</a></li>
+                <li class="sidebar-item"><a href="/">📅 Volver a Reservas</a></li>
+            </ul>
+        </div>
+        <div><a class="btn-logout" href="/logout">Cerrar Sesión</a></div>
+    </nav>
+
+    <main class="main-content">
+        <header class="main-header"><h1>Control General de la Barbería</h1></header>
+
+        <section class="table-container">
+            <div class="table-title">Registros de Turnos en Base de Datos</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Peluquero</th>
+                        <th>Fecha y Hora</th>
+                        <th>Estado</th>
+                        <th>Acciones Administrativas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if turnos %}
+                        {% for t in turnos %}
+                            <tr>
+                                <td>{{ t.nombre }}</td>
+                                <td>{{ t.peluquero }}</td>
+                                <td>{{ t.fecha }}</td>
+                                <td>
+                                    {% if t.estado == 'cancelado' %}
+                                        <span class="badge-cancelado">Cancelado</span>
+                                    {% elif t.estado == 'confirmado' %}
+                                        <span class="badge-confirmado">Confirmado</span>
+                                    {% else %}
+                                        <span class="badge-activo">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="actions-cell">
+                                        <a href="/admin/turnos/confirmar/{{ t.id }}" class="btn-confirm">✓ Confirmar</a>
+                                        <a href="/admin/turnos/cancelar/{{ t.id }}" class="btn-cancel">✕ Cancelar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #6b7280; padding: 30px;">No hay turnos registrados.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
 </body>
 </html>

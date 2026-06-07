@@ -2,33 +2,95 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Administración</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbería  - Gestión de Peluqueros</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 280px; background-color: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; flex-shrink: 0; }
+        .sidebar-header { padding: 10px 20px 20px 20px; border-bottom: 1px solid #1f2937; }
+        .sidebar-logo { font-size: 22px; font-weight: 600; }
+        .sidebar-menu { list-style: none; margin-top: 20px; flex-grow: 1; }
+        .sidebar-item a { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: #9ca3af; text-decoration: none; font-size: 15px; font-weight: 500; transition: all 0.2s ease; }
+        .sidebar-item.active a { color: #06b6d4; background-color: rgba(6, 182, 212, 0.08); border-left: 4px solid #06b6d4; }
+        .sidebar-item a:hover { color: #ffffff; background-color: #1f2937; }
+        .btn-logout { display: block; margin: 20px; padding: 12px; background-color: #ef4444; color: white; text-align: center; text-decoration: none; border-radius: 8px; font-size: 14px; font-weight: 600; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .main-header { margin-bottom: 30px; }
+        .main-header h1 { font-size: 28px; font-weight: 600; }
+        .admin-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start; }
+        .form-card { background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 25px; }
+        .form-card h3 { font-size: 18px; margin-bottom: 20px; }
+        .input-group { margin-bottom: 18px; display: flex; flex-direction: column; }
+        .input-group label { font-size: 13px; color: #9ca3af; margin-bottom: 8px; }
+        .input-group input { background-color: #0b0f19; border: 1px solid #374151; padding: 12px; border-radius: 8px; color: #ffffff; font-size: 14px; outline: none; }
+        .btn-add-barber { background-color: #2563eb; color: white; padding: 12px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; width: 100%; }
+        .table-container { background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+        .table-title { padding: 20px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #1f2937; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #2563eb; color: #ffffff; padding: 14px 20px; font-size: 14px; }
+        td { padding: 16px 20px; border-bottom: 1px solid #1f2937; font-size: 14px; }
+        .btn-action-delete { color: #ef4444; text-decoration: none; font-weight: 600; font-size: 13px; }
+    </style>
 </head>
-<body class="container mt-5">
-    <h1>Gestionar Peluqueros</h1>
-    
-    <form action="/admin/agregar_peluquero" method="POST" class="mb-4">
-        <input type="text" name="nombre" placeholder="Nombre del peluquero" required>
-        <button type="submit" class="btn btn-success">Agregar</button>
-    </form>
+<body>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in peluqueros %}
-            <tr>
-                <td>{{ p.nombre }}</td>
-                <td><a href="/admin/eliminar_peluquero/{{ p.id }}" class="btn btn-danger btn-sm">Eliminar</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <a href="/">Ir a la web pública</a>
+    <nav class="sidebar">
+        <div>
+            <div class="sidebar-header"><div class="sidebar-logo">💈 Panel Admin </div></div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item"><a href="/turnos">📋 Ver Todos los Turnos</a></li>
+                <li class="sidebar-item active"><a href="/admin/peluqueros/">✂️ Gestionar Peluqueros</a></li>
+                <li class="sidebar-item"><a href="/">📅 Volver a Reservas</a></li>
+            </ul>
+        </div>
+        <div><a class="btn-logout" href="/logout">Cerrar Sesión</a></div>
+    </nav>
+
+    <main class="main-content">
+        <header class="main-header"><h1>Gestión del Staff</h1></header>
+
+        <div class="admin-grid">
+            <div class="form-card">
+                <h3>Agregar Peluquero</h3>
+                <form action="/admin/peluqueros/agregar" method="POST">
+                    <div class="input-group">
+                        <label>Nombre del Profesional</label>
+                        <input type="text" name="nombre" placeholder="Ej: PerPartes" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn-add-barber">Registrar en Staff</button>
+                </form>
+            </div>
+
+            <section class="table-container">
+                <div class="table-title">Peluqueros Activos</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if peluqueros %}
+                            {% for p in peluqueros %}
+                                <tr>
+                                    <td><strong>{{ p.nombre }}</strong></td>
+                                    <td>
+                                        <a href="/admin/peluqueros/eliminar/{{ p.id }}" class="btn-action-delete">✕ Eliminar del Staff</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="2" style="text-align: center; color: #6b7280; padding: 30px;">No hay peluqueros cargados.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
 </body>
 </html>

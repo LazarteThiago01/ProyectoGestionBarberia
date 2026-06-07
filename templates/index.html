@@ -2,77 +2,196 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Barbería Grupo 12</title>
-    <!-- Bootstrap para el diseño -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbería Burzaco - Bienvenido</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19; /* Fondo oscuro */
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Tarjeta contenedora */
+        .auth-card {
+            background-color: #111827;
+            width: 100%;
+            max-width: 420px;
+            padding: 35px 30px;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .auth-header .logo {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .auth-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* Selector de pestañas convertido en enlaces seguros */
+        .tab-container {
+            display: flex;
+            background-color: #0b0f19;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #1f2937;
+        }
+
+        .tab-link {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            color: #9ca3af;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        /* Pestaña activa azul de tu captura */
+        .tab-link.active {
+            background-color: #2563eb;
+            color: #ffffff;
+        }
+
+        /* Control de visualización por Jinja2 */
+        .auth-form {
+            display: block;
+        }
+
+        /* Inputs y etiquetas */
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            background-color: #0b0f19;
+            border: 1px solid #374151;
+            padding: 12px;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Botón de acción */
+        .btn-submit {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+
+        .footer-text {
+            color: #6b7280;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 25px;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- BARRA DE NAVEGACIÓN -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Barbería G12</a>
-            <div class="navbar-nav ms-auto">
-                {% if session.get('username') %}
-                    <span class="navbar-text me-3">
-                        Hola, <strong>{{ session['username'] }}</strong> 
-                        <span class="badge bg-secondary">{{ session['rol'] }}</span>
-                    </span>
-                    
-                    {% if session['rol'] == 'admin' %}
-                        <a class="btn btn-outline-warning btn-sm me-2" href="/admin/peluqueros/">Panel Peluqueros</a>
-                        <a class="btn btn-outline-warning btn-sm me-2" href="/turnos">Ver Turnos</a>
-                    {% endif %}
-                    
-                    <a class="btn btn-danger btn-sm" href="/logout">Cerrar Sesión</a>
-                {% else %}
-                    <a class="nav-link" href="/login">Iniciar Sesión</a>
-                    <a class="btn btn-primary btn-sm ms-2" href="/registro">Registrarse</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Reserva tu Turno</h1>
+    <div class="auth-card">
         
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow p-4">
-                    <form action="/reservar" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label">Nombre Completo</label>
-                            <input type="text" name="nombre" class="form-control" placeholder="Ej: Juan Pérez" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Correo Electrónico</label>
-                            <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Elegí tu Peluquero</label>
-                            <select name="peluquero" class="form-select" required>
-                                <option value="" selected disabled>Seleccioná un profesional...</option>       
-                                {% for p in peluqueros %}
-                                    <option value="{{ p.nombre }}">{{ p.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Fecha y Hora</label>
-                            <input type="datetime-local" name="fecha" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Reservar Turno</button>
-                    </form>
-                </div>
-                
-                <p class="text-center mt-4 text-muted small">
-                    © 2024 Barbería Grupo 12 - Proyecto Final
-                </p>
-            </div>
+        <div class="auth-header">
+            <div class="logo">💈</div>
+            <h2>Barbería Burzaco</h2>
+            
         </div>
+
+        <div class="tab-container">
+            <a href="/?action=login" class="tab-link {% if request.args.get('action', 'login') == 'login' %}active{% endif %}">Iniciar Sesión</a>
+            <a href="/?action=registro" class="tab-link {% if request.args.get('action') == 'registro' %}active{% endif %}">Registrarse</a>
+        </div>
+
+        {% if request.args.get('action') == 'registro' %}
+            
+            <form id="registro-form" class="auth-form" action="/registro" method="POST">
+                <div class="input-group">
+                    <label for="reg-usuario">Elegí tu Usuario</label>
+                    <input type="text" id="reg-usuario" name="usuario" required placeholder="Ej: juan123" autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label for="reg-password">Contraseña</label>
+                    <input type="password" id="reg-password" name="password" required placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <button type="submit" class="btn-submit">Crear Cuenta</button>
+            </form>
+
+        {% else %}
+            
+            <form id="login-form" class="auth-form" action="/login" method="POST">
+                <div class="input-group">
+                    <label for="login-usuario">Usuario</label>
+                    <input type="text" id="login-usuario" name="usuario" required placeholder="Tu usuario" autocomplete="off">
+                </div>
+
+                <div class="input-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" name="password" required placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="btn-submit">Ingresar</button>
+            </form>
+
+        {% endif %}
+
+        <p class="footer-text">
+            © 2026 Barbería Grupo 11- Proyecto Facultad
+        </p>
     </div>
 
-    <!-- Script de Bootstrap para que funcionen los menús si hiciera falta -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

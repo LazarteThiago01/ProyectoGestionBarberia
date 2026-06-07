@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head><title>Registro</title></head>
-<body>
-    <h2>Crear Cuenta</h2>
-    <form method="POST">
-        <input type="text" name="username" placeholder="Tu nombre de usuario" required><br><br>
-        <input type="password" name="password" placeholder="Tu contraseña" required><br><br>
-        <p><small>Tip: Si usás la clave de admin, serás administrador.</small></p>
-        <button type="submit">Registrarse</button>
-    </form>
-    <br>
-    <a href="/">Volver al inicio</a>
-</body>
-</html>
+<form id="registro-form" class="auth-form" action="/registro" method="POST">
+    <div class="input-group">
+        <label for="reg-usuario">Elegí tu Usuario</label>
+        <input type="text" id="reg-usuario" name="usuario" required placeholder="Ej: juan123" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+        <label for="reg-password">Contraseña</label>
+        <input type="password" id="reg-password" name="password" required placeholder="Mínimo 6 caracteres">
+    </div>
+
+    <button type="submit" class="btn-submit">Crear Cuenta</button>
+</form>

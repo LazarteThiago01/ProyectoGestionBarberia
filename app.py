@@ -7,17 +7,17 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///barberia.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'burzaco1936' 
-ADMIN_PASSWORD = "burzaco1936" # Si alguien se registra con esta clave, será Admin
 
 db = SQLAlchemy(app)
 
-# --- MODELOS (TABLAS) ---
+# --- MODELOS (TABLAS EN SQLITE) ---
 class Turno(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     peluquero = db.Column(db.String(50), nullable=False)
     fecha = db.Column(db.String(50), nullable=False)
+    estado = db.Column(db.String(20), default='pendiente') # Para confirmar/cancelar
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,10 +29,11 @@ class Peluquero(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
 
+# Crear las tablas si no existen
 with app.app_context():
     db.create_all()
 
-# --- RUTAS PÚBLICAS ---
+# --- RUTAS PÚBLICAS / CLIENTES ---
 
 @app.route('/')
 def home():
@@ -49,73 +50,136 @@ def reservar():
     nuevo_turno = Turno(nombre=nombre, email=email, peluquero=peluquero, fecha=fecha)
     db.session.add(nuevo_turno)
     db.session.commit()
-    return f"<h1>¡Turno Registrado!</h1><p>Hola {nombre}, turno con {peluquero} guardado.</p><a href='/'>Volver</a>"
+    
+    # Redirecciona al inicio con facha en vez de tirar un texto plano h1 suelto
+    return redirect('/')
 
-# --- LOGIN Y REGISTRO ---
-
+# --- REGISTRO DE USUARIOS REAL ---
 @app.route('/registro', methods=['POST'])
 def registro():
-    usuario = request.form.get('usuario')
-    password = request.form.get('password')
-    rol = request.form.get('rol') # <--- Thiago tiene que agregar esta línea si usás la opción con select
+    usuario_ingresado = request.form.get('usuario')
+    password_ingresada = request.form.get('password')
     
-    # Acá abajo va su lógica para guardarlo en la base de datos...
-    return "Registro exitoso"
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = request.form.get('username')
-        passw = request.form.get('password')
-        usuario = Usuario.query.filter_by(username=user, password=passw).first()
+    if usuario_ingresado and password_ingresada:
+        # Chequear si ya existe el nombre de usuario
+        existe = Usuario.query.filter_by(username=usuario_ingresado).first()
+        if existe:
+            return redirect('/?action=registro&error=usuario_existe')
+            
+        # Crear el nuevo cliente en la Base de Datos
+        nuevo_usuario = Usuario(username=usuario_ingresado, password=password_ingresada, rol='cliente')
+        db.session.add(nuevo_usuario)
+        db.session.commit()
         
-        if usuario:
-            session['user_id'] = usuario.id
-            session['rol'] = usuario.rol
-            session['username'] = usuario.username
-            return redirect(url_for('home'))
-        else:
-            return "Usuario o contraseña incorrectos"
-    return render_template('login.html')
+        # Auto-loguearlo al registrarse
+        session['username'] = nuevo_usuario.username
+        session['rol'] = nuevo_usuario.rol
+        return redirect('/')
+        
+    return redirect('/?action=registro&error=1')
 
+# --- LOGIN UNIFICADO (SÓLO UNO) ---
+@app.route('/login', methods=['POST'])
+def login():
+    usuario_ingresado = request.form.get('usuario')
+    password_ingresada = request.form.get('password')
+    
+    # 1. Validación exclusiva para los dueños (Martín y Thiago) con la clave de Sanma
+    if (usuario_ingresado == 'thiago' or usuario_ingresado == 'martin') and password_ingresada == 'sanma1936':
+        session['username'] = usuario_ingresado
+        session['rol'] = 'admin'
+        return redirect('/turnos') # Al admin lo manda derecho al panel
+        
+    # 2. Validación en la Base de Datos para clientes comunes
+    elif usuario_ingresado and password_ingresada:
+        usuario_db = Usuario.query.filter_by(username=usuario_ingresado, password=password_ingresada).first()
+        if usuario_db:
+            session['username'] = usuario_db.username
+            session['rol'] = usuario_db.rol
+            return redirect('/')
+            
+    # Si falla, vuelve al login con error
+    return redirect('/?action=login&error=credenciales')
+
+# --- LOGOUT UNIFICADO (SÓLO UNO) ---
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('home'))
+    session.clear() 
+    return redirect('/')
 
-# --- RUTAS DE ADMINISTRACIÓN ---
 
+# =====================================================================
+# RUTAS DEL PANEL DE ADMINISTRACIÓN PROTEGIDAS
+# =====================================================================
+
+# --- PANEL DE ADMINISTRACIÓN DE TURNOS ACTUALIZADO ---
 @app.route('/turnos')
 def ver_turnos():
     if session.get('rol') != 'admin':
-        return "Acceso denegado.", 403
-    todos_los_turnos = Turno.query.all()
-    return render_template('turnos.html', lista_turnos=todos_los_turnos)
+        return redirect('/') 
+        
+    lista_turnos = Turno.query.all()
+    # Cambiado para que levante tu archivo exacto:
+    return render_template('turnos.html', turnos=lista_turnos) 
 
 @app.route('/admin/peluqueros/')
-def admin_peluqueros():
+def panel_peluqueros():
     if session.get('rol') != 'admin':
-        return "Acceso denegado.", 403
-    todos = Peluquero.query.all()
-    return render_template('admin_peluqueros.html', peluqueros=todos)
+        return redirect('/')
+        
+    # Trae la lista real de barberos para la tabla
+    lista_p = Peluquero.query.all()
+    return render_template('admin.peluqueros.html', peluqueros=lista_p)
 
-@app.route('/admin/agregar_peluquero', methods=['POST'])
+
+# --- ACCIONES ADMINISTRATIVAS REALES (PARA SACAR/PONER TURNOS Y STAFF) ---
+
+@app.route('/admin/peluqueros/agregar', methods=['POST'])
 def agregar_peluquero():
-    nombre = request.form.get('nombre')
-    if nombre:
-        nuevo = Peluquero(nombre=nombre)
-        db.session.add(nuevo)
+    if session.get('rol') != 'admin':
+        return redirect('/')
+    
+    nombre_b = request.form.get('nombre')
+    if nombre_b:
+        nuevo_p = Peluquero(nombre=nombre_b)
+        db.session.add(nuevo_p)
         db.session.commit()
-    return redirect(url_for('admin_peluqueros'))
+    return redirect('/admin/peluqueros/')
 
-@app.route('/admin/eliminar_peluquero/<int:id>')
+@app.route('/admin/peluqueros/eliminar/<int:id>')
 def eliminar_peluquero(id):
-    p = db.session.get(Peluquero, id)
+    if session.get('rol') != 'admin':
+        return redirect('/')
+        
+    p = Peluquero.query.get(id)
     if p:
         db.session.delete(p)
         db.session.commit()
-    return redirect(url_for('admin_peluqueros'))
+    return redirect('/admin/peluqueros/')
 
-# --- INICIO DEL SERVIDOR (AL FINAL DE TODO) ---
+@app.route('/admin/turnos/confirmar/<int:id>')
+def confirmar_turno(id):
+    if session.get('rol') != 'admin':
+        return redirect('/')
+        
+    turno = Turno.query.get(id)
+    if turno:
+        turno.estado = 'confirmado'
+        db.session.commit()
+    return redirect('/turnos')
+
+@app.route('/admin/turnos/cancelar/<int:id>')
+def cancelar_turno(id):
+    if session.get('rol') != 'admin':
+        return redirect('/')
+        
+    turno = Turno.query.get(id)
+    if turno:
+        turno.estado = 'cancelado'
+        db.session.commit()
+    return redirect('/turnos')
+
+
+# --- INICIO DEL SERVIDOR ---
 if __name__ == '__main__':
     app.run(debug=True)
