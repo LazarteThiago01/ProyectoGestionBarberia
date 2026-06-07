@@ -1,12 +1,16 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
 
 # --- CONFIGURACIÓN DE BASE DE DATOS ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///barberia.db'
+if not os.path.exists(app.instance_path):
+    os.makedirs(app.instance_path)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'barberia.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'burzaco1936' 
+app.secret_key = 'burzaco1936'
 ADMIN_PASSWORD = "burzaco1936" # Si alguien se registra con esta clave, será Admin
 
 db = SQLAlchemy(app)
@@ -55,36 +59,43 @@ def reservar():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
+    error = None
     if request.method == 'POST':
         user = request.form.get('username')
         passw = request.form.get('password')
         
-        # Lógica automática: si la clave es la de admin, se guarda con rol admin
-        determinar_rol = 'cliente'
-        if passw == ADMIN_PASSWORD:
-            determinar_rol = 'admin'
+        if not user or not passw:
+            error = 'Usuario y contraseña son obligatorios.'
+        elif Usuario.query.filter_by(username=user).first():
+            error = 'Ese nombre de usuario ya existe. Elegí otro.'
+        else:
+            determinar_rol = 'cliente'
+            if passw == ADMIN_PASSWORD:
+                determinar_rol = 'admin'
 
-        nuevo_usuario = Usuario(username=user, password=passw, rol=determinar_rol)
-        db.session.add(nuevo_usuario)
-        db.session.commit()
-        return redirect(url_for('login'))
-    return render_template('registro.html')
+            hashed_password = generate_password_hash(passw)
+            nuevo_usuario = Usuario(username=user, password=hashed_password, rol=determinar_rol)
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            return redirect(url_for('login'))
+    return render_template('registro.html', error=error)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         user = request.form.get('username')
         passw = request.form.get('password')
-        usuario = Usuario.query.filter_by(username=user, password=passw).first()
+        usuario = Usuario.query.filter_by(username=user).first()
         
-        if usuario:
+        if usuario and check_password_hash(usuario.password, passw):
             session['user_id'] = usuario.id
             session['rol'] = usuario.rol
             session['username'] = usuario.username
             return redirect(url_for('home'))
         else:
-            return "Usuario o contraseña incorrectos"
-    return render_template('login.html')
+            error = 'Usuario o contraseña incorrectos'
+    return render_template('login.html', error=error)
 
 @app.route('/logout')
 def logout():

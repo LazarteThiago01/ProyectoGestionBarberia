@@ -156,6 +156,16 @@
         .btn-submit:hover {
             background-color: var(--azul-hover);
         }
+        .error-message {
+            background: rgba(239, 68, 68, 0.14);
+            color: #fecaca;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            text-align: left;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
@@ -169,7 +179,10 @@
         <h2 class="login-title">Barber App</h2>
         <p class="login-subtitle">Gestión de Turnos Integrada</p>
 
-        <form>
+        <form method="POST" action="{{ url_for('login') }}">
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
             <div class="form-group">
                 <label for="username">Usuario</label>
                 <div class="input-wrapper">
@@ -187,7 +200,7 @@
 
             <button type="submit" class="btn-submit">Ingresar</button>
         </form>
-
+        <p style="margin-top:18px;color:var(--texto-gris);font-size:0.9rem;">¿No tenés cuenta? <a href="{{ url_for('registro') }}" style="color:var(--azul-hover);text-decoration:none;">Registrate aquí</a></p>
     </div>
 
     <script>

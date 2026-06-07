@@ -11,10 +11,13 @@
         <div class="card">
             <h1>Crear tu cuenta</h1>
             <p class="small">¿Ya tenés cuenta? <a href="{{ url_for('login') }}">Iniciá sesión</a></p>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
 
-            <form method="POST" class="register-form">
-                <label for="name">Nombre completo</label>
-                <input id="name" name="name" type="text" placeholder="Tu nombre completo" required>
+            <form method="POST" action="{{ url_for('registro') }}" class="register-form">
+                <label for="username">Nombre de usuario</label>
+                <input id="username" name="username" type="text" placeholder="Tu nombre de usuario" required>
 
                 <label for="email">Correo electrónico</label>
                 <input id="email" name="email" type="email" placeholder="nombre@ejemplo.com" required>
