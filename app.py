@@ -53,22 +53,14 @@ def reservar():
 
 # --- LOGIN Y REGISTRO ---
 
-@app.route('/registro', methods=['GET', 'POST'])
+@app.route('/registro', methods=['POST'])
 def registro():
-    if request.method == 'POST':
-        user = request.form.get('username')
-        passw = request.form.get('password')
-        
-        # Lógica automática: si la clave es la de admin, se guarda con rol admin
-        determinar_rol = 'cliente'
-        if passw == ADMIN_PASSWORD:
-            determinar_rol = 'admin'
-
-        nuevo_usuario = Usuario(username=user, password=passw, rol=determinar_rol)
-        db.session.add(nuevo_usuario)
-        db.session.commit()
-        return redirect(url_for('login'))
-    return render_template('registro.html')
+    usuario = request.form.get('usuario')
+    password = request.form.get('password')
+    rol = request.form.get('rol') # <--- Thiago tiene que agregar esta línea si usás la opción con select
+    
+    # Acá abajo va su lógica para guardarlo en la base de datos...
+    return "Registro exitoso"
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
