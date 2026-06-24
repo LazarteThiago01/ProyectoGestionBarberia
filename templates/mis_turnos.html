@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Turnos - Barbería Burzaco</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 20px; font-size: 22px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background-color: #10b981; color: white; padding: 12px; text-align: left; font-size: 14px; }
+        td { padding: 12px; border-bottom: 1px solid #1f2937; font-size: 14px; }
+        .badge-pendiente { color: #d97706; font-weight: bold; }
+        .badge-confirmado { color: #10b981; font-weight: bold; }
+        .badge-cancelado { color: #ef4444; font-weight: bold; }
+        .btn-volver { display: block; text-align: center; background-color: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📅 Mis Turnos Reservados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Barbero</th>
+                    <th>Fecha y Hora</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in turnos %}
+                <tr>
+                    <td>{{ t.peluquero }}</td>
+                    <td>{{ t.fecha }}</td>
+                    <td>
+                        {% if t.estado == 'confirmado' %}
+                            <span class="badge-confirmado">Confirmado ✓</span>
+                        {% elif t.estado == 'cancelado' %}
+                            <span class="badge-cancelado">Cancelado ✕</span>
+                        {% else %}
+                            <span class="badge-pendiente">Pendiente...</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #6b7280; padding: 20px;">Todavía no reservaste ningún turno.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="/" class="btn-volver">Volver al Inicio</a>
+    </div>
+</body>
+</html>

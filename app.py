@@ -51,7 +51,6 @@ def reservar():
     db.session.add(nuevo_turno)
     db.session.commit()
     
-    # Redirecciona al inicio con facha en vez de tirar un texto plano h1 suelto
     return redirect('/')
 
 # --- REGISTRO DE USUARIOS REAL ---
@@ -61,24 +60,21 @@ def registro():
     password_ingresada = request.form.get('password')
     
     if usuario_ingresado and password_ingresada:
-        # Chequear si ya existe el nombre de usuario
         existe = Usuario.query.filter_by(username=usuario_ingresado).first()
         if existe:
             return redirect('/?action=registro&error=usuario_existe')
             
-        # Crear el nuevo cliente en la Base de Datos
         nuevo_usuario = Usuario(username=usuario_ingresado, password=password_ingresada, rol='cliente')
         db.session.add(nuevo_usuario)
         db.session.commit()
         
-        # Auto-loguearlo al registrarse
         session['username'] = nuevo_usuario.username
         session['rol'] = nuevo_usuario.rol
         return redirect('/')
         
     return redirect('/?action=registro&error=1')
 
-# --- LOGIN UNIFICADO (SÓLO UNO) ---
+# --- LOGIN UNIFICADO ---
 @app.route('/login', methods=['POST'])
 def login():
     usuario_ingresado = request.form.get('usuario')
@@ -88,7 +84,7 @@ def login():
     if (usuario_ingresado == 'thiago' or usuario_ingresado == 'martin') and password_ingresada == 'sanma1936':
         session['username'] = usuario_ingresado
         session['rol'] = 'admin'
-        return redirect('/turnos') # Al admin lo manda derecho al panel
+        return redirect('/turnos')
         
     # 2. Validación en la Base de Datos para clientes comunes
     elif usuario_ingresado and password_ingresada:
@@ -98,10 +94,9 @@ def login():
             session['rol'] = usuario_db.rol
             return redirect('/')
             
-    # Si falla, vuelve al login con error
     return redirect('/?action=login&error=credenciales')
 
-# --- LOGOUT UNIFICADO (SÓLO UNO) ---
+# --- LOGOUT UNIFICADO ---
 @app.route('/logout')
 def logout():
     session.clear() 
@@ -109,17 +104,33 @@ def logout():
 
 
 # =====================================================================
-# RUTAS DEL PANEL DE ADMINISTRACIÓN PROTEGIDAS
+# RUTAS DEL PANEL DE USUARIO (CLIENTE)
 # =====================================================================
 
-# --- PANEL DE ADMINISTRACIÓN DE TURNOS ACTUALIZADO ---
+@app.route('/mis-turnos')
+def mis_turnos():
+    # Si no inició sesión, lo manda para afuera
+    if not session.get('username'):
+        return redirect('/')
+        
+    usuario_actual = session.get('username')
+    
+    # Filtra en la base de datos para traer SOLO los turnos de este cliente
+    turnos_cliente = Turno.query.filter_by(nombre=usuario_actual).all()
+    
+    return render_template('mis_turnos.html', turnos=turnos_cliente)
+
+
+# =====================================================================
+# RUTAS DEL PANEL DE ADMINISTRACIÓN PROTEGIDAS (ADMIN)
+# =====================================================================
+
 @app.route('/turnos')
 def ver_turnos():
     if session.get('rol') != 'admin':
         return redirect('/') 
         
     lista_turnos = Turno.query.all()
-    # Cambiado para que levante tu archivo exacto:
     return render_template('turnos.html', turnos=lista_turnos) 
 
 @app.route('/admin/peluqueros/')
@@ -127,12 +138,11 @@ def panel_peluqueros():
     if session.get('rol') != 'admin':
         return redirect('/')
         
-    # Trae la lista real de barberos para la tabla
     lista_p = Peluquero.query.all()
     return render_template('admin.peluqueros.html', peluqueros=lista_p)
 
 
-# --- ACCIONES ADMINISTRATIVAS REALES (PARA SACAR/PONER TURNOS Y STAFF) ---
+# --- ACCIONES ADMINISTRATIVAS REALES ---
 
 @app.route('/admin/peluqueros/agregar', methods=['POST'])
 def agregar_peluquero():

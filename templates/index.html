@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barbería Burzaco - Bienvenido</title>
+    <title>Barbería Burzaco - Sitio Oficial</title>
     
     <style>
         * {
@@ -11,45 +11,203 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            scroll-behavior: smooth;
         }
 
         body {
-            background-color: #0b0f19; /* Fondo oscuro */
+            background-color: #0b0f19; /* Fondo oscuro original */
             color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* BARRA DE NAVEGACIÓN */
+        .navbar {
+            background-color: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar .logo-nav {
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout-nav {
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* SECCIÓN PRINCIPAL (HERO) */
+        .hero {
+            padding: 140px 5% 60px 5%;
+            text-align: center;
+            background: linear-gradient(180deg, #111827 0%, #0b0f19 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero .logo-grande {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            color: #9ca3af;
+            font-size: 18px;
+            max-width: 600px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* EL BOTÓN PRINCIPAL (Estilo de tu captura) */
+        .btn-principal {
+            background-color: #2563eb;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 16px 40px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-principal:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        /* SECCIÓN DE INFORMACIÓN Y SERVICIOS */
+        .seccion-info {
+            padding: 60px 5%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .titulo-seccion {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .grid-servicios {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 5px;
+        }
+
+        .tarjeta-servicio {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+        .tarjeta-servicio:hover {
+            border-color: #2563eb;
+        }
+
+        .tarjeta-servicio .icono {
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        .tarjeta-servicio h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .tarjeta-servicio p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        /* =====================================================================
+           ESTILOS VENTANA MODAL (POP-UP IDÉNTICO A TU CAPTURA)
+           ===================================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        /* Tarjeta contenedora */
-        .auth-card {
+        /* Se activa usando la URL hash (:target) */
+        .modal-overlay:target {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-contenedor {
             background-color: #111827;
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             padding: 35px 30px;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid #1f2937;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            position: relative;
         }
 
-        .auth-header {
-            text-align: center;
-            margin-bottom: 25px;
+        .modal-cerrar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 22px;
+            color: #9ca3af;
+            text-decoration: none;
+            font-weight: bold;
         }
 
-        .auth-header .logo {
-            font-size: 32px;
-            margin-bottom: 8px;
+        .modal-cerrar:hover {
+            color: #ffffff;
         }
 
-        .auth-header h2 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        /* Selector de pestañas convertido en enlaces seguros */
+        /* selectores de pestañas adentro del modal */
         .tab-container {
             display: flex;
             background-color: #0b0f19;
@@ -68,21 +226,14 @@
             font-size: 14px;
             font-weight: 600;
             border-radius: 6px;
-            transition: all 0.2s ease;
         }
 
-        /* Pestaña activa azul de tu captura */
         .tab-link.active {
             background-color: #2563eb;
             color: #ffffff;
         }
 
-        /* Control de visualización por Jinja2 */
-        .auth-form {
-            display: block;
-        }
-
-        /* Inputs y etiquetas */
+        /* Inputs y Formularios */
         .input-group {
             margin-bottom: 20px;
             display: flex;
@@ -96,7 +247,7 @@
             font-weight: 500;
         }
 
-        .input-group input {
+        .input-group input, .input-group select {
             background-color: #0b0f19;
             border: 1px solid #374151;
             padding: 12px;
@@ -104,15 +255,12 @@
             color: #ffffff;
             font-size: 15px;
             outline: none;
-            transition: all 0.2s ease;
         }
 
-        .input-group input:focus {
+        .input-group input:focus, .input-group select:focus {
             border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
-        /* Botón de acción */
         .btn-submit {
             background-color: #2563eb;
             color: #ffffff;
@@ -123,75 +271,174 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
         }
 
         .btn-submit:hover {
             background-color: #1d4ed8;
         }
 
+        .welcome-box-modal {
+            text-align: center;
+            background-color: #1f2937;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .btn-panel-link {
+            display: block;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 13px;
+        }
+
         .footer-text {
             color: #6b7280;
             font-size: 12px;
             text-align: center;
-            margin-top: 25px;
+            margin-top: 40px;
+            padding-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div class="auth-card">
+    <nav class="navbar">
+        <div class="logo-nav">💈 Barbería Burzaco</div>
+        <div class="nav-user-info">
+            {% if session.get('username') %}
+                <span style="font-size: 14px; color: #9ca3af;">Hola, <strong>{{ session.get('username') }}</strong></span>
+                <a href="/logout" class="btn-logout-nav">Cerrar Sesión</a>
+            {% else %}
+                <a href="#modal-reserva" style="color: #2563eb; font-weight: 600; text-decoration: none; font-size: 14px;">Iniciar Sesión</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="logo-grande">💈</div>
+        <h1>Barbería Burzaco</h1>
+        <p>Viví la experiencia de un corte premium en zona sur. Profesionales capacitados, ambiente impecable y turnos personalizados a tu medida.</p>
         
-        <div class="auth-header">
-            <div class="logo">💈</div>
-            <h2>Barbería Burzaco</h2>
-            
+        <a href="#modal-reserva" class="btn-principal">
+            📅 Reservar Turno Ahora
+        </a>
+    </header>
+
+    <main class="seccion-info">
+        <h2 class="titulo-seccion">Nuestros Servicios Destacados</h2>
+        
+        <div class="grid-servicios">
+            <div class="tarjeta-servicio">
+                <div class="icono">✂️</div>
+                <h3>Corte Clásico / Moderno</h3>
+                <p>Asesoramiento de imagen personalizado adaptado a tu estilo de cabello y facciones.</p>
+            </div>
+            <div class="tarjeta-servicio">
+                <div class="icono">🪒</div>
+                <h3>Perfilado de Barba</h3>
+                <p>Esculpido detallado con navaja, toallas calientes y aceites hidratantes esenciales.</p>
+            </div>
+            <div class="tarjeta-servicio">
+                <div class="icono">⚡</div>
+                <h3>Combo Burzaco</h3>
+                <p>El pack completo: corte de pelo premium más tratamiento y cuidado completo de barba.</p>
+            </div>
         </div>
+    </main>
 
-        <div class="tab-container">
-            <a href="/?action=login" class="tab-link {% if request.args.get('action', 'login') == 'login' %}active{% endif %}">Iniciar Sesión</a>
-            <a href="/?action=registro" class="tab-link {% if request.args.get('action') == 'registro' %}active{% endif %}">Registrarse</a>
+
+    <div id="modal-reserva" class="modal-overlay">
+        <div class="modal-contenedor">
+            <a href="#" class="modal-cerrar">✕</a>
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h3 style="font-size: 20px; font-weight: 600;">Reserva de Turnos</h3>
+                <p style="color: #9ca3af; font-size: 13px; margin-top: 4px;">Completá los datos para agendar tu cita</p>
+            </div>
+
+            {% if session.get('username') %}
+                
+                <div class="welcome-box-modal">
+                    <span>Usuario activo: <strong>{{ session.get('username') }}</strong></span>
+                    {% if session.get('rol') == 'admin' %}
+                        <a href="/turnos" class="btn-panel-link" style="background-color: #06b6d4; color: white;">⚙️ Panel Administración</a>
+                    {% else %}
+                        <a href="/mis-turnos" class="btn-panel-link" style="background-color: #10b981; color: white;">📅 Ver Mis Turnos Agendados</a>
+                    {% endif %}
+                </div>
+
+                <form action="/reservar" method="POST">
+                    <div class="input-group">
+                        <label>Nombre de Reserva</label>
+                        <input type="text" name="nombre" value="{{ session.get('username') }}" readonly style="color: #9ca3af; background-color: #0b0f19;">
+                    </div>
+                    <div class="input-group">
+                        <label>Tu Correo Electrónico</label>
+                        <input type="email" name="email" placeholder="ejemplo@correo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Seleccionar Barbero</label>
+                        <select name="peluquero" required>
+                            {% for p in peluqueros %}
+                                <option value="{{ p.nombre }}">{{ p.nombre }}</option>
+                            {% else %}
+                                <option value="">No hay barberos disponibles</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Fecha y Hora del Turno</label>
+                        <input type="datetime-local" name="fecha" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Confirmar y Agendar</button>
+                </form>
+
+            {% else %}
+                
+                <div class="tab-container">
+                    <a href="/?action=login#modal-reserva" class="tab-link {% if request.args.get('action', 'login') == 'login' %}active{% endif %}">Iniciar Sesión</a>
+                    <a href="/?action=registro#modal-reserva" class="tab-link {% if request.args.get('action') == 'registro' %}active{% endif %}">Registrarse</a>
+                </div>
+
+                {% if request.args.get('action') == 'registro' %}
+                    <form id="registro-form" action="/registro" method="POST">
+                        <div class="input-group">
+                            <label for="reg-usuario">Elegí tu Usuario</label>
+                            <input type="text" id="reg-usuario" name="usuario" required placeholder="Ej: juan123" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label for="reg-password">Contraseña</label>
+                            <input type="password" id="reg-password" name="password" required placeholder="Mínimo 6 caracteres">
+                        </div>
+                        <button type="submit" class="btn-submit">Crear Cuenta</button>
+                    </form>
+                {% else %}
+                    <form id="login-form" action="/login" method="POST">
+                        <div class="input-group">
+                            <label for="login-usuario">Usuario</label>
+                            <input type="text" id="login-usuario" name="usuario" required placeholder="Tu usuario" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label for="login-password">Contraseña</label>
+                            <input type="password" id="login-password" name="password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn-submit">Ingresar</button>
+                    </form>
+                {% endif %}
+
+            {% endif %}
         </div>
-
-        {% if request.args.get('action') == 'registro' %}
-            
-            <form id="registro-form" class="auth-form" action="/registro" method="POST">
-                <div class="input-group">
-                    <label for="reg-usuario">Elegí tu Usuario</label>
-                    <input type="text" id="reg-usuario" name="usuario" required placeholder="Ej: juan123" autocomplete="off">
-                </div>
-
-                <div class="input-group">
-                    <label for="reg-password">Contraseña</label>
-                    <input type="password" id="reg-password" name="password" required placeholder="Mínimo 6 caracteres">
-                </div>
-
-                <button type="submit" class="btn-submit">Crear Cuenta</button>
-            </form>
-
-        {% else %}
-            
-            <form id="login-form" class="auth-form" action="/login" method="POST">
-                <div class="input-group">
-                    <label for="login-usuario">Usuario</label>
-                    <input type="text" id="login-usuario" name="usuario" required placeholder="Tu usuario" autocomplete="off">
-                </div>
-
-                <div class="input-group">
-                    <label for="login-password">Contraseña</label>
-                    <input type="password" id="login-password" name="password" required placeholder="••••••••">
-                </div>
-
-                <button type="submit" class="btn-submit">Ingresar</button>
-            </form>
-
-        {% endif %}
-
-        <p class="footer-text">
-            © 2026 Barbería Grupo 11- Proyecto Facultad
-        </p>
     </div>
+
+    <p class="footer-text">
+        © 2026 Barbería Grupo 11 - Proyecto Facultad
+    </p>
 
 </body>
 </html>
