@@ -10,7 +10,7 @@ Proyecto desarrollado en Python utilizando el microframework **Flask** y **Flask
 
 ## 🛠️ Instalación y Uso
 1. Activar el entorno virtual: `venv\Scripts\activate`
-2. Instalar dependencias: `pip install -r requirements.txt`
+2. Instalar dependencias: `pip install flask` `pip install flask flask-sqlalchemy`
 3. Ejecutar la aplicación: `python app.py`
 
 # 💈 Sistema de Gestión y Reserva de Citas - Barbería Burzaco
