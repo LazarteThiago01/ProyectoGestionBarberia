@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 # Nueva librería obligatoria para encriptar claves
 from werkzeug.security import generate_password_hash, check_password_hash
+# Librería para manejar fechas y horas
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -47,12 +49,20 @@ def reservar():
     nombre = request.form.get('nombre')
     email = request.form.get('email')
     peluquero = request.form.get('peluquero')
-    fecha = request.form.get('fecha')
+    fecha_ingresada = request.form.get('fecha')
 
-    nuevo_turno = Turno(nombre=nombre, email=email, peluquero=peluquero, fecha=fecha)
+    # Validación backend para evitar fechas pasadas
+    if fecha_ingresada:
+        fecha_dt = datetime.strptime(fecha_ingresada, '%Y-%m-%dT%H:%M')
+        if fecha_dt < datetime.now():
+            flash('¡Error! No podés seleccionar una fecha o hora que ya pasó.', 'danger')
+            return redirect('/')
+
+    nuevo_turno = Turno(nombre=nombre, email=email, peluquero=peluquero, fecha=fecha_ingresada)
     db.session.add(nuevo_turno)
     db.session.commit()
     
+    flash('¡Turno reservado con éxito! Te esperamos.', 'success')
     return redirect('/')
 
 # --- REGISTRO DE USUARIOS SEGURO ---
@@ -64,7 +74,8 @@ def registro():
     if usuario_ingresado and password_ingresada:
         existe = Usuario.query.filter_by(username=usuario_ingresado).first()
         if existe:
-            return redirect('/?action=registro&error=usuario_existe')
+            flash('El nombre de usuario ya está registrado.', 'danger')
+            return redirect('/')
             
         # 1. Encriptamos la contraseña antes de guardarla
         password_encriptada = generate_password_hash(password_ingresada)
@@ -72,14 +83,15 @@ def registro():
         # 2. Control de Roles automático para el Grupo 12 sin claves expuestas
         rol_asignado = 'cliente'
         if usuario_ingresado.lower() in ['thiago', 'martin']:
-            rol_assigned = 'admin'
+            rol_asignado = 'admin'
             
-        nuevo_usuario = Usuario(username=usuario_ingresado, password=password_encriptada, rol=rol_assigned)
+        nuevo_usuario = Usuario(username=usuario_ingresado, password=password_encriptada, rol=rol_asignado)
         db.session.add(nuevo_usuario)
         db.session.commit()
         
         session['username'] = nuevo_usuario.username
         session['rol'] = nuevo_usuario.rol
+        flash('¡Usuario registrado e ingresado con éxito!', 'success')
         return redirect('/')
         
     return redirect('/?action=registro&error=1')
@@ -99,17 +111,21 @@ def login():
             session['username'] = usuario_db.username
             session['rol'] = usuario_db.rol
             
-            # Si eres admin, te manda directo al panel de turnos
+            flash(f'¡Bienvenido de nuevo, {usuario_db.username}!', 'success')
+            
+            # Si eres admin, te manda directo al panel de control principal
             if usuario_db.rol == 'admin':
-                return redirect('/turnos')
+                return redirect('/admin/peluqueros/')
             return redirect('/')
             
-    return redirect('/?action=login&error=credenciales')
+    flash('Usuario o contraseña incorrectos.', 'danger')
+    return redirect('/')
 
 # --- LOGOUT UNIFICADO ---
 @app.route('/logout')
 def logout():
     session.clear() 
+    flash('Sesión cerrada correctamente.', 'success')
     return redirect('/')
 
 
@@ -160,6 +176,7 @@ def agregar_peluquero():
         nuevo_p = Peluquero(nombre=nombre_b)
         db.session.add(nuevo_p)
         db.session.commit()
+        flash('Peluquero agregado correctamente.', 'success')
     return redirect('/admin/peluqueros/')
 
 @app.route('/admin/peluqueros/eliminar/<int:id>')
@@ -171,6 +188,7 @@ def eliminar_peluquero(id):
     if p:
         db.session.delete(p)
         db.session.commit()
+        flash('Peluquero eliminado.', 'success')
     return redirect('/admin/peluqueros/')
 
 @app.route('/admin/turnos/confirmar/<int:id>')
@@ -182,6 +200,7 @@ def confirmar_turno(id):
     if turno:
         turno.estado = 'confirmado'
         db.session.commit()
+        flash('Turno confirmado con éxito.', 'success')
     return redirect('/turnos')
 
 @app.route('/admin/turnos/cancelar/<int:id>')
@@ -193,6 +212,7 @@ def cancelar_turno(id):
     if turno:
         turno.estado = 'cancelado'
         db.session.commit()
+        flash('Turno cancelado.', 'danger')
     return redirect('/turnos')
 
 

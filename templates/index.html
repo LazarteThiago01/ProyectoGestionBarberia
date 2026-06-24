@@ -54,6 +54,45 @@
             font-size: 14px;
         }
 
+        .btn-mis-turnos-nav {
+            background-color: #10b981;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        .btn-mis-turnos-nav:hover {
+            background-color: #059669;
+        }
+
+        /* ESTILOS PARA MENSAJES FLASH */
+        .contenedor-flash {
+            width: 90%;
+            max-width: 600px;
+            margin: 110px auto -80px auto; /* Ubicado abajo de la navbar fija */
+        }
+        .alerta-flash {
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .alerta-success {
+            background-color: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+        .alerta-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
         /* SECCIÓN PRINCIPAL (HERO) */
         .hero {
             padding: 140px 5% 60px 5%;
@@ -84,7 +123,7 @@
             line-height: 1.6;
         }
 
-        /* EL BOTÓN PRINCIPAL (Estilo de tu captura) */
+        /* EL BOTÓN PRINCIPAL */
         .btn-principal {
             background-color: #2563eb;
             color: white;
@@ -156,9 +195,7 @@
             font-size: 14px;
         }
 
-        /* =====================================================================
-           ESTILOS VENTANA MODAL (POP-UP IDÉNTICO A TU CAPTURA)
-           ===================================================================== */
+        /* VENTANA MODAL */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -176,7 +213,6 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Se activa usando la URL hash (:target) */
         .modal-overlay:target {
             opacity: 1;
             pointer-events: auto;
@@ -207,7 +243,6 @@
             color: #ffffff;
         }
 
-        /* selectores de pestañas adentro del modal */
         .tab-container {
             display: flex;
             background-color: #0b0f19;
@@ -233,7 +268,6 @@
             color: #ffffff;
         }
 
-        /* Inputs y Formularios */
         .input-group {
             margin-bottom: 20px;
             display: flex;
@@ -304,6 +338,18 @@
             margin-top: 40px;
             padding-bottom: 20px;
         }
+
+        /* CAMBIAR EL COLOR DEL ICONO DEL CALENDARIO NATIVO A BLANCO */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -313,12 +359,27 @@
         <div class="nav-user-info">
             {% if session.get('username') %}
                 <span style="font-size: 14px; color: #9ca3af;">Hola, <strong>{{ session.get('username') }}</strong></span>
+                {% if session.get('rol') != 'admin' %}
+                    <a href="/mis-turnos" class="btn-mis-turnos-nav">📅 Mis Turnos</a>
+                {% endif %}
                 <a href="/logout" class="btn-logout-nav">Cerrar Sesión</a>
             {% else %}
                 <a href="#modal-reserva" style="color: #2563eb; font-weight: 600; text-decoration: none; font-size: 14px;">Iniciar Sesión</a>
             {% endif %}
         </div>
     </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="contenedor-flash">
+                {% for category, message in messages %}
+                    <div class="alerta-flash alerta-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <header class="hero">
         <div class="logo-grande">💈</div>
@@ -367,7 +428,7 @@
                 <div class="welcome-box-modal">
                     <span>Usuario activo: <strong>{{ session.get('username') }}</strong></span>
                     {% if session.get('rol') == 'admin' %}
-                        <a href="/turnos" class="btn-panel-link" style="background-color: #06b6d4; color: white;">⚙️ Panel Administración</a>
+                        <a href="/admin/peluqueros/" class="btn-panel-link" style="background-color: #06b6d4; color: white;">⚙️ Panel Administración</a>
                     {% else %}
                         <a href="/mis-turnos" class="btn-panel-link" style="background-color: #10b981; color: white;">📅 Ver Mis Turnos Agendados</a>
                     {% endif %}
@@ -394,7 +455,7 @@
                     </div>
                     <div class="input-group">
                         <label>Fecha y Hora del Turno</label>
-                        <input type="datetime-local" name="fecha" required>
+                        <input type="datetime-local" id="input_fecha" name="fecha" required>
                     </div>
                     <button type="submit" class="btn-submit">Confirmar y Agendar</button>
                 </form>
@@ -437,8 +498,27 @@
     </div>
 
     <p class="footer-text">
-        © 2026 Barbería Grupo 11 - Proyecto Facultad
+        © 2026 Barbería Grupo 12 - Proyecto Facultad
     </p>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const inputFecha = document.getElementById("input_fecha");
+            if (inputFecha) {
+                const ahora = new Date();
+                
+                // Convertir hora local a formato YYYY-MM-DDTHH:MM requerido por input
+                const año = ahora.getFullYear();
+                const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+                const dia = String(ahora.getDate()).padStart(2, '0');
+                const hora = String(ahora.getHours()).padStart(2, '0');
+                const minutos = String(ahora.getMinutes()).padStart(2, '0');
+                
+                const fechaMinima = `${año}-${mes}-${dia}T${hora}:${minutos}`;
+                inputFecha.min = fechaMinima;
+            }
+        });
+    </script>
 
 </body>
 </html>
