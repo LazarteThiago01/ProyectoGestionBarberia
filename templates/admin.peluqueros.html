@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Peluqueros - Barbería Burzaco</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 10px; font-size: 22px; text-align: center; }
+        .subtitulo { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 25px; }
+        
+        /* Formulario para agregar */
+        .form-agregar { display: flex; gap: 10px; margin-bottom: 25px; }
+        .input-text { flex: 1; background-color: #1f2937; border: 1px solid #374151; padding: 12px; border-radius: 8px; color: white; font-size: 14px; }
+        .input-text:focus { outline: none; border-color: #10b981; }
+        .btn-agregar { background-color: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-agregar:hover { background-color: #059669; }
+
+        /* Tabla */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #1f2937; color: #10b981; padding: 12px; text-align: left; font-size: 14px; border-bottom: 2px solid #10b981; }
+        td { padding: 12px; border-bottom: 1px solid #1f2937; font-size: 14px; }
+        
+        /* Botones de acción */
+        .btn-eliminar { color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px; }
+        .btn-eliminar:hover { text-decoration: underline; }
+        .btn-volver { display: block; text-align: center; background-color: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 25px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💈 Gestión de Peluqueros</h2>
+        <div class="subtitulo">Panel de Control de Personal</div>
+
+        <form action="/admin/peluqueros/agregar" method="POST" class="form-agregar">
+            <input type="text" name="nombre" class="input-text" placeholder="Nombre del nuevo barbero..." required>
+            <button type="submit" class="btn-agregar">Agregar</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre del Profesional</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in peluqueros %}
+                <tr>
+                    <td>#{{ p.id }}</td>
+                    <td><strong>{{ p.nombre }}</strong></td>
+                    <td style="text-align: right;">
+                        <a href="/admin/peluqueros/eliminar/{{ p.id }}" class="btn-eliminar" onclick="return confirm('¿Seguro querés eliminar a este peluquero?')">Eliminar ✕</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #6b7280; padding: 20px;">No hay ningún peluquero cargado en el sistema.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a href="/turnos" class="btn-volver">Ir al Panel de Turnos</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Barbería Burzaco</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; width: 100%; max-width: 900px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 20px; font-size: 22px; text-align: center; }
+        .menu-admin { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .btn-link { color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .btn-link:hover { text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background-color: #1f2937; color: #10b981; padding: 12px; text-align: left; font-size: 14px; border-bottom: 2px solid #10b981; }
+        td { padding: 12px; border-bottom: 1px solid #1f2937; font-size: 14px; }
+        .badge-pendiente { color: #d97706; font-weight: bold; }
+        .badge-confirmado { color: #10b981; font-weight: bold; }
+        .badge-cancelado { color: #ef4444; font-weight: bold; }
+        .btn-accion { inline-block; padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: bold; margin-right: 5px; }
+        .btn-confirmar { background-color: #10b981; color: white; }
+        .btn-confirmar:hover { background-color: #059669; }
+        .btn-cancelar { background-color: #ef4444; color: white; }
+        .btn-cancelar:hover { background-color: #dc2626; }
+        .btn-volver { display: block; text-align: center; background-color: #2563eb; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🛠️ Panel de Control: Todos los Turnos</h2>
+        
+        <div class="menu-admin">
+            <a href="/admin/peluqueros/" class="btn-link">💈 Gestionar Peluqueros</a>
+            <span style="color: #6b7280;">Modo Administrador</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Email</th>
+                    <th>Barbero</th>
+                    <th>Fecha y Hora</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in turnos %}
+                <tr>
+                    <td>{{ t.nombre }}</td>
+                    <td>{{ t.email }}</td>
+                    <td>{{ t.peluquero }}</td>
+                    <td>{{ t.fecha }}</td>
+                    <td>
+                        {% if t.estado == 'confirmado' %}
+                            <span class="badge-confirmado">Confirmado ✓</span>
+                        {% elif t.estado == 'cancelado' %}
+                            <span class="badge-cancelado">Cancelado ✕</span>
+                        {% else %}
+                            <span class="badge-pendiente">Pendiente...</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.estado == 'pendiente' %}
+                            <a href="/admin/turnos/confirmar/{{ t.id }}" class="btn-accion btn-confirmar">Confirmar</a>
+                            <a href="/admin/turnos/cancelar/{{ t.id }}" class="btn-accion btn-cancelar">Cancelar</a>
+                        {% else %}
+                            <span style="color: #6b7280; font-size: 12px;">Sin acciones</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #6b7280; padding: 20px;">No hay turnos registrados en el sistema global.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <a href="/" class="btn-volver">Volver al Inicio</a>
+    </div>
+</body>
+</html>

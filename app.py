@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+# Nueva librería obligatoria para encriptar claves
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -17,12 +19,12 @@ class Turno(db.Model):
     email = db.Column(db.String(100), nullable=False)
     peluquero = db.Column(db.String(50), nullable=False)
     fecha = db.Column(db.String(50), nullable=False)
-    estado = db.Column(db.String(20), default='pendiente') # Para confirmar/cancelar
+    estado = db.Column(db.String(20), default='pendiente')
 
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False) # Guardará la clave encriptada
     rol = db.Column(db.String(20), default='cliente') 
 
 class Peluquero(db.Model):
@@ -53,7 +55,7 @@ def reservar():
     
     return redirect('/')
 
-# --- REGISTRO DE USUARIOS REAL ---
+# --- REGISTRO DE USUARIOS SEGURO ---
 @app.route('/registro', methods=['POST'])
 def registro():
     usuario_ingresado = request.form.get('usuario')
@@ -64,7 +66,15 @@ def registro():
         if existe:
             return redirect('/?action=registro&error=usuario_existe')
             
-        nuevo_usuario = Usuario(username=usuario_ingresado, password=password_ingresada, rol='cliente')
+        # 1. Encriptamos la contraseña antes de guardarla
+        password_encriptada = generate_password_hash(password_ingresada)
+        
+        # 2. Control de Roles automático para el Grupo 12 sin claves expuestas
+        rol_asignado = 'cliente'
+        if usuario_ingresado.lower() in ['thiago', 'martin']:
+            rol_assigned = 'admin'
+            
+        nuevo_usuario = Usuario(username=usuario_ingresado, password=password_encriptada, rol=rol_assigned)
         db.session.add(nuevo_usuario)
         db.session.commit()
         
@@ -74,24 +84,24 @@ def registro():
         
     return redirect('/?action=registro&error=1')
 
-# --- LOGIN UNIFICADO ---
+# --- LOGIN UNIFICADO SEGURO ---
 @app.route('/login', methods=['POST'])
 def login():
     usuario_ingresado = request.form.get('usuario')
     password_ingresada = request.form.get('password')
     
-    # 1. Validación exclusiva para los dueños (Martín y Thiago) con la clave de Sanma
-    if (usuario_ingresado == 'thiago' or usuario_ingresado == 'martin') and password_ingresada == 'sanma1936':
-        session['username'] = usuario_ingresado
-        session['rol'] = 'admin'
-        return redirect('/turnos')
+    if usuario_ingresado and password_ingresada:
+        # Buscamos al usuario en la base de datos por su nombre
+        usuario_db = Usuario.query.filter_by(username=usuario_ingresado).first()
         
-    # 2. Validación en la Base de Datos para clientes comunes
-    elif usuario_ingresado and password_ingresada:
-        usuario_db = Usuario.query.filter_by(username=usuario_ingresado, password=password_ingresada).first()
-        if usuario_db:
+        # check_password_hash descifra y compara de forma segura las credenciales
+        if usuario_db and check_password_hash(usuario_db.password, password_ingresada):
             session['username'] = usuario_db.username
             session['rol'] = usuario_db.rol
+            
+            # Si eres admin, te manda directo al panel de turnos
+            if usuario_db.rol == 'admin':
+                return redirect('/turnos')
             return redirect('/')
             
     return redirect('/?action=login&error=credenciales')
@@ -109,15 +119,11 @@ def logout():
 
 @app.route('/mis-turnos')
 def mis_turnos():
-    # Si no inició sesión, lo manda para afuera
     if not session.get('username'):
         return redirect('/')
         
     usuario_actual = session.get('username')
-    
-    # Filtra en la base de datos para traer SOLO los turnos de este cliente
     turnos_cliente = Turno.query.filter_by(nombre=usuario_actual).all()
-    
     return render_template('mis_turnos.html', turnos=turnos_cliente)
 
 
@@ -161,7 +167,7 @@ def eliminar_peluquero(id):
     if session.get('rol') != 'admin':
         return redirect('/')
         
-    p = Peluquero.query.get(id)
+    p = db.session.get(Peluquero, id)
     if p:
         db.session.delete(p)
         db.session.commit()
@@ -172,7 +178,7 @@ def confirmar_turno(id):
     if session.get('rol') != 'admin':
         return redirect('/')
         
-    turno = Turno.query.get(id)
+    turno = db.session.get(Turno, id)
     if turno:
         turno.estado = 'confirmado'
         db.session.commit()
@@ -183,7 +189,7 @@ def cancelar_turno(id):
     if session.get('rol') != 'admin':
         return redirect('/')
         
-    turno = Turno.query.get(id)
+    turno = db.session.get(Turno, id)
     if turno:
         turno.estado = 'cancelado'
         db.session.commit()
