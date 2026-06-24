@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Gestión de Turnos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            padding: 40px 5%;
+        }
+        .header-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 20px;
+        }
+        h1 { font-size: 28px; }
+        .btn-volver {
+            background-color: #374151;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .btn-volver:hover { background-color: #4b5563; }
+        
+        /* TABLA DE TURNOS */
+        .contenedor-tabla {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #1f2937;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #1f2937;
+            color: #9ca3af;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        tr:hover { background-color: #1f2937; }
+        
+        /* BOTONES DE ACCIÓN */
+        .btn-confirmar {
+            background-color: #10b981;
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .btn-confirmar:hover { background-color: #059669; }
+
+        .btn-eliminar {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .btn-eliminar:hover { background-color: #dc2626; }
+        
+        .sin-turnos {
+            padding: 40px;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .acciones-flex {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-admin">
+        <h1>⚙️ Panel de Control: Turnos Registrados</h1>
+        <a href="/" class="btn-volver">← Volver al Inicio</a>
+    </div>
+
+    <div class="contenedor-tabla">
+        {% if turnos %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Email</th>
+                        <th>Barbero</th>
+                        <th>Fecha y Hora</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in turnos %}
+                        <tr>
+                            <td><strong>{{ t.nombre }}</strong></td>
+                            <td>{{ t.email }}</td>
+                            <td>💈 {{ t.peluquero }}</td>
+                            <td>📅 {{ t.fecha }}</td>
+                            <td>
+                                <span style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block;
+                                    {% if t.estado == 'confirmado' %} background-color: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981;
+                                    {% elif t.estado == 'cancelado' %} background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444;
+                                    {% else %} background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; {% endif %}">
+                                    {{ t.estado | upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="acciones-flex">
+                                    {% if t.estado != 'confirmado' and t.estado != 'cancelado' %}
+                                        <a href="/admin/turnos/confirmar/{{ t.id }}" class="btn-confirmar">Confirmar</a>
+                                    {% endif %}
+                                    
+                                    <form action="/admin/turnos/eliminar/{{ t.id }}" method="POST" onsubmit="return confirm('¿Seguro que querés remover este turno permanentemente de la agenda?');" style="display: inline;">
+                                        <button type="submit" class="btn-eliminar">Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="sin-turnos">
+                <p>No hay turnos agendados en este momento.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

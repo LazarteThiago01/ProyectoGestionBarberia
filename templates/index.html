@@ -428,7 +428,8 @@
                 <div class="welcome-box-modal">
                     <span>Usuario activo: <strong>{{ session.get('username') }}</strong></span>
                     {% if session.get('rol') == 'admin' %}
-                        <a href="/admin/peluqueros/" class="btn-panel-link" style="background-color: #06b6d4; color: white;">⚙️ Panel Administración</a>
+                        <a href="/admin/peluqueros/" class="btn-panel-link" style="background-color: #06b6d4; color: white;">💈 Administrar Barberos</a>
+                        <a href="/admin/turnos" class="btn-panel-link" style="background-color: #2563eb; color: white;">📅 Administrar Turnos del Sitio</a>
                     {% else %}
                         <a href="/mis-turnos" class="btn-panel-link" style="background-color: #10b981; color: white;">📅 Ver Mis Turnos Agendados</a>
                     {% endif %}

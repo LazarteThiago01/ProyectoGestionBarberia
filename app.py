@@ -10,7 +10,7 @@ app = Flask(__name__)
 # --- CONFIGURACIÓN DE BASE DE DATOS ---
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///barberia.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'burzaco1936' 
+app.secret_key = 'BarberiaBurzacoSecret' 
 
 db = SQLAlchemy(app)
 
@@ -113,7 +113,7 @@ def login():
             
             flash(f'¡Bienvenido de nuevo, {usuario_db.username}!', 'success')
             
-            # Si eres admin, te manda directo al panel de control principal
+            # Si eres admin, te manda directo al panel de control de barberos
             if usuario_db.rol == 'admin':
                 return redirect('/admin/peluqueros/')
             return redirect('/')
@@ -147,13 +147,20 @@ def mis_turnos():
 # RUTAS DEL PANEL DE ADMINISTRACIÓN PROTEGIDAS (ADMIN)
 # =====================================================================
 
-@app.route('/turnos')
-def ver_turnos():
+# Ruta principal de gestión de turnos para el administrador
+@app.route('/admin/turnos')
+def admin_turnos():
     if session.get('rol') != 'admin':
         return redirect('/') 
         
-    lista_turnos = Turno.query.all()
-    return render_template('turnos.html', turnos=lista_turnos) 
+    # Traemos todos los turnos para mostrarlos en la nueva plantilla unificada
+    lista_turnos = Turno.query.order_by(Turno.fecha.asc()).all()
+    return render_template('admin_turnos.html', turnos=lista_turnos) 
+
+# Antigua ruta obsoleta redirigida al nuevo panel unificado para evitar TemplateNotFound
+@app.route('/turnos')
+def ver_turnos():
+    return redirect('/admin/turnos')
 
 @app.route('/admin/peluqueros/')
 def panel_peluqueros():
@@ -161,6 +168,7 @@ def panel_peluqueros():
         return redirect('/')
         
     lista_p = Peluquero.query.all()
+    # SOLUCIONADO: Se cambió el punto "." por guión bajo para mapear con admin_peluqueros.html
     return render_template('admin.peluqueros.html', peluqueros=lista_p)
 
 
@@ -191,6 +199,19 @@ def eliminar_peluquero(id):
         flash('Peluquero eliminado.', 'success')
     return redirect('/admin/peluqueros/')
 
+# Ruta utilizada para cancelar/eliminar turnos directamente desde el panel de control admin
+@app.route('/admin/turnos/eliminar/<int:id>', methods=['POST'])
+def eliminar_turno_admin(id):
+    if session.get('rol') != 'admin':
+        return redirect('/')
+        
+    turno = db.session.get(Turno, id)
+    if turno:
+        db.session.delete(turno)
+        db.session.commit()
+        flash('Turno cancelado y removido de la agenda correctamente.', 'success')
+    return redirect('/admin/turnos')
+
 @app.route('/admin/turnos/confirmar/<int:id>')
 def confirmar_turno(id):
     if session.get('rol') != 'admin':
@@ -201,7 +222,7 @@ def confirmar_turno(id):
         turno.estado = 'confirmado'
         db.session.commit()
         flash('Turno confirmado con éxito.', 'success')
-    return redirect('/turnos')
+    return redirect('/admin/turnos')
 
 @app.route('/admin/turnos/cancelar/<int:id>')
 def cancelar_turno(id):
@@ -212,8 +233,8 @@ def cancelar_turno(id):
     if turno:
         turno.estado = 'cancelado'
         db.session.commit()
-        flash('Turno cancelado.', 'danger')
-    return redirect('/turnos')
+        flash('Turno marcado como cancelado.', 'danger')
+    return redirect('/admin/turnos')
 
 
 # --- INICIO DEL SERVIDOR ---
